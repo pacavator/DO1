@@ -9,33 +9,32 @@ Vagrant.configure("2") do |config|
     config.vm.box = "bento/centos-7.5"
     config.vm.provider "virtualbox" do |vb|
       vb.gui = true
-  end
+    end
 
-config.vm.define "server1" do |server1|
-    server1.vm.hostname = "server1"
-    server1.vm.network "private_network", ip: "192.168.0.10"
-    server1.vm.network "forwarded_port", guest: 22, host: 2222
-    server1.vm.provision "shell", inline: <<-SHELL
-      sudo yum -y install git
-      sudo yum -y install mc
-      sudo echo "*********************************"
-      sudo git init
-      sudo git pull git://github.com/pacavator/DO1
-      sudo git pull git://github.com/pacavator/DO1 task2
-      less task2-1.txt
-      sudo echo "192.168.0.11    server2" >> /etc/hosts
-      SHELL
-  end
+    config.vm.define "server1" do |server1|
+      server1.vm.hostname = "server1"
+      server1.vm.network "private_network", ip: "192.168.1.10"
+      server1.vm.network "forwarded_port", guest: 22, host: 2222
+      server1.vm.provision "shell", inline: <<-SHELL
+        yum -y install git
+        yum -y install mc
+        echo "*********************************"
+        git clone git://github.com/pacavator/DO1 -b task2
+        cd DO1
+        less task2-1.txt
+        echo "192.168.1.11    server2" >> /etc/hosts
+        SHELL
+    end
 
-config.vm.define "server2" do |server2|
-    server2.vm.hostname = "server2"
-    server2.vm.network "private_network", ip: "192.168.0.11"
-    server2.vm.network "forwarded_port", guest: 22, host: 2200
-    server2.vm.provision "shell", inline: <<-SHELL
-      sudo echo "****"
-      sudo echo "192.168.0.10	server1" >> /etc/hosts
-      SHELL
-  end
+    config.vm.define "server2" do |server2|
+      server2.vm.hostname = "server2"
+      server2.vm.network "private_network", ip: "192.168.1.11"
+      server2.vm.network "forwarded_port", guest: 22, host: 2200
+      server2.vm.provision "shell", inline: <<-SHELL
+        sudo echo "****"
+        sudo echo "192.168.1.10    server1" >> /etc/hosts
+        SHELL
+    end
 
   # The most common configuration options are documented and commented below.
   # For a complete reference, please see the online documentation at
@@ -43,8 +42,8 @@ config.vm.define "server2" do |server2|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "bento/centos-7.5"
-
+    config.vm.box = "bento/centos-7.5"
+  
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
@@ -99,4 +98,4 @@ config.vm.define "server2" do |server2|
   #   apt-get update
   #   apt-get install -y apache2
   # SHELL
-  end
+end  
