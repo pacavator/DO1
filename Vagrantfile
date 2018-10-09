@@ -8,7 +8,7 @@
 Vagrant.configure("2") do |config| 
     config.vm.box = "bento/centos-7.5"
     config.vm.provider "virtualbox" do |vb|
-         vb.gui = true
+        vb.gui = true
     end
 
     config.vm.define "server1" do |server1|
