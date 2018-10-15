@@ -23,21 +23,21 @@ Vagrant.configure("2") do |config|
             cp /vagrant/mod_jk.so /etc/httpd/modules/
             touch /etc/httpd/conf/workers.properties
             echo "worker.list=lb" >> /etc/httpd/conf/workers.properties
-	        echo "worker.lb.type=lb" >> /etc/httpd/conf/workers.properties
-	        echo "worker.lb.balance_workers=tomcat1,tomcat2 other" >> /etc/httpd/conf/workers.properties
-	        echo "worker.tomcat1.host=tomcat1" >> /etc/httpd/conf/workers.properties
-	        echo "worker.tomcat1.port=8009" >> /etc/httpd/conf/workers.properties
-	        echo "worker.tomcat1.type=ajp13" >> /etc/httpd/conf/workers.properties
-	        echo "worker.tomcat2.host=tomcat2" >> /etc/httpd/conf/workers.properties
-	        echo "worker.tomcat2.port=8009" >> /etc/httpd/conf/workers.properties
-	        echo "worker.tomcat2.type=ajp13" >> /etc/httpd/conf/workers.properties
+            echo "worker.lb.type=lb" >> /etc/httpd/conf/workers.properties
+            echo "worker.lb.balance_workers=tomcat1,tomcat2 other" >> /etc/httpd/conf/workers.properties
+            echo "worker.tomcat1.host=tomcat1" >> /etc/httpd/conf/workers.properties
+            echo "worker.tomcat1.port=8009" >> /etc/httpd/conf/workers.properties
+            echo "worker.tomcat1.type=ajp13" >> /etc/httpd/conf/workers.properties
+            echo "worker.tomcat2.host=tomcat2" >> /etc/httpd/conf/workers.properties
+            echo "worker.tomcat2.port=8009" >> /etc/httpd/conf/workers.properties
+            echo "worker.tomcat2.type=ajp13" >> /etc/httpd/conf/workers.properties
             echo "*********************************"             
             echo "LoadModule jk_module modules/mod_jk.so" >> /etc/httpd/conf/httpd.conf
-	        echo "JkWorkersFile conf/workers.properties" >> /etc/httpd/conf/httpd.conf
+            echo "JkWorkersFile conf/workers.properties" >> /etc/httpd/conf/httpd.conf
             echo "JkShmFile /tmp/shm" >> /etc/httpd/conf/httpd.conf
-	        echo "JkLogFile logs/mod_jk.log" >> /etc/httpd/conf/httpd.conf
-	        echo "JkLogLevel info" >> /etc/httpd/conf/httpd.conf
-	        echo "JkMount /pacavaca* lb" >> /etc/httpd/conf/httpd.conf	        
+            echo "JkLogFile logs/mod_jk.log" >> /etc/httpd/conf/httpd.conf
+            echo "JkLogLevel info" >> /etc/httpd/conf/httpd.conf
+            echo "JkMount /pacavaca* lb" >> /etc/httpd/conf/httpd.conf	        
             echo "192.168.10.11    tomcat1" >> /etc/hosts
             echo "192.168.10.12    tomcat2" >> /etc/hosts
             systemctl restart httpd
