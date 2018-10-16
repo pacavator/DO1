@@ -10,72 +10,63 @@ TOMCAT_COUNT = (NODE_COUNT - 1)
 
 
 Vagrant.configure("2") do |config| 
-    config.vm.box = "bento/centos-7.5"
-    config.vm.provider "virtualbox" do |vb|
-        vb.gui = true
-    end
+  config.vm.box = "bento/centos-7.5"
+  config.vm.provider "virtualbox" do |vb|
+      vb.gui = true
+  end
  
 
     
   
-    config.vm.define "apache" do |apache|
-        apache.vm.hostname = "apache"
-        apache.vm.network "private_network", ip: "192.168.10.10"
-        apache.vm.network "forwarded_port", guest: 80, host: 18000
-        apache.vm.provision "shell", inline: <<-SHELL
-            TOMCAT_COUNT=#{TOMCAT_COUNT}
-            echo $TOMCAT_COUNT
-            yum -y install mc
-            yum -y install httpd
-            systemctl enable httpd
-            cp /vagrant/mod_jk.so /etc/httpd/modules/
-            touch /etc/httpd/conf/workers.properties
-            echo "worker.list=lb" >> /etc/httpd/conf/workers.properties
-            echo "worker.lb.type=lb" >> /etc/httpd/conf/workers.properties
-            echo "worker.lb.balance_workers=tomcat1,tomcat2 other" >> /etc/httpd/conf/workers.properties
-            for ((i=1;i<=$TOMCAT_COUNT;i++))
-                do
-                    echo "worker.tomcat${i}.host=tomcat${i}" >> /etc/httpd/conf/workers.properties
-                    echo "worker.tomcat${i}.port=8009" >> /etc/httpd/conf/workers.properties
-                    echo "worker.tomcat${i}.type=ajp13" >> /etc/httpd/conf/workers.properties
-                    echo "192.168.10.1${i}    tomcat${i}" >> /etc/hosts
-                done
-#            echo "worker.tomcat1.host=tomcat1" >> /etc/httpd/conf/workers.properties
-#            echo "worker.tomcat1.port=8009" >> /etc/httpd/conf/workers.properties
-#            echo "worker.tomcat1.type=ajp13" >> /etc/httpd/conf/workers.properties
-#            echo "worker.tomcat2.host=tomcat2" >> /etc/httpd/conf/workers.properties
-#            echo "worker.tomcat2.port=8009" >> /etc/httpd/conf/workers.properties
-#            echo "worker.tomcat2.type=ajp13" >> /etc/httpd/conf/workers.properties
-            echo "*********************************"             
-            echo "LoadModule jk_module modules/mod_jk.so" >> /etc/httpd/conf/httpd.conf
-            echo "JkWorkersFile conf/workers.properties" >> /etc/httpd/conf/httpd.conf
-            echo "JkShmFile /tmp/shm" >> /etc/httpd/conf/httpd.conf
-            echo "JkLogFile logs/mod_jk.log" >> /etc/httpd/conf/httpd.conf
-            echo "JkLogLevel info" >> /etc/httpd/conf/httpd.conf
-            echo "JkMount /pacavaca* lb" >> /etc/httpd/conf/httpd.conf	        
-#            echo "192.168.10.11    tomcat1" >> /etc/hosts
-#            echo "192.168.10.12    tomcat2" >> /etc/hosts
-            systemctl start httpd 
-        SHELL
-    end
+  config.vm.define "apache" do |apache|
+    apache.vm.hostname = "apache"
+    apache.vm.network "private_network", ip: "192.168.10.10"
+    apache.vm.network "forwarded_port", guest: 80, host: 18000
+    apache.vm.provision "shell", inline: <<-SHELL
+      TOMCAT_COUNT=#{TOMCAT_COUNT}
+      echo $TOMCAT_COUNT
+      yum -y install mc
+      yum -y install httpd
+      systemctl enable httpd
+      cp /vagrant/mod_jk.so /etc/httpd/modules/
+      touch /etc/httpd/conf/workers.properties
+      echo "worker.list=lb" >> /etc/httpd/conf/workers.properties
+      echo "worker.lb.type=lb" >> /etc/httpd/conf/workers.properties
+      echo "worker.lb.balance_workers=tomcat1,tomcat2 other" >> /etc/httpd/conf/workers.properties
+      for ((i=1;i<=$TOMCAT_COUNT;i++))
+        do
+          echo "worker.tomcat${i}.host=tomcat${i}" >> /etc/httpd/conf/workers.properties
+          echo "worker.tomcat${i}.port=8009" >> /etc/httpd/conf/workers.properties
+          echo "worker.tomcat${i}.type=ajp13" >> /etc/httpd/conf/workers.properties
+          echo "192.168.10.1${i}    tomcat${i}" >> /etc/hosts
+        done
+      echo "*********************************"             
+      echo "LoadModule jk_module modules/mod_jk.so" >> /etc/httpd/conf/httpd.conf
+      echo "JkWorkersFile conf/workers.properties" >> /etc/httpd/conf/httpd.conf
+      echo "JkShmFile /tmp/shm" >> /etc/httpd/conf/httpd.conf
+      echo "JkLogFile logs/mod_jk.log" >> /etc/httpd/conf/httpd.conf
+      echo "JkLogLevel info" >> /etc/httpd/conf/httpd.conf
+      echo "JkMount /pacavaca* lb" >> /etc/httpd/conf/httpd.conf	        
+      systemctl start httpd 
+    SHELL
+  end
   
   (1..TOMCAT_COUNT).each do |i|
-
     config.vm.define "tomcat#{i}" do |tomcat|
-        tomcat.vm.hostname = "tomcat#{i}"
-        tomcat.vm.network "private_network", ip: "192.168.10.#{i + 10}"
-#        tomcat{i}.vm.network "forwarded_port", guest: 8080, host: 1800{i}
-        tomcat.vm.provision "shell", inline: <<-SHELL
-            yum -y install mc
-            yum -y install java-1.8.0-openjdk
-            yum -y install tomcat tomcat-webapps tomcat-admin-webapps
-            systemctl enable tomcat
-            systemctl start tomcat
-            mkdir /usr/share/tomcat/webapps/pacavaca/
-            echo "#{i}#{i}#{i}#{i}#{i}#{i}#{i}#{i}" >> /usr/share/tomcat/webapps/pacavaca/index.html
-            echo "*********************************"
-            echo "192.168.10.10    apache" >> /etc/hosts
-            SHELL
+      tomcat.vm.hostname = "tomcat#{i}"
+      tomcat.vm.network "private_network", ip: "192.168.10.#{i + 10}"
+#      tomcat{i}.vm.network "forwarded_port", guest: 8080, host: 1800{i}
+      tomcat.vm.provision "shell", inline: <<-SHELL
+        yum -y install mc
+        yum -y install java-1.8.0-openjdk
+        yum -y install tomcat tomcat-webapps tomcat-admin-webapps
+        systemctl enable tomcat
+        systemctl start tomcat
+        mkdir /usr/share/tomcat/webapps/pacavaca/
+        echo "#{i}#{i}#{i}#{i}#{i}#{i}#{i}#{i}" >> /usr/share/tomcat/webapps/pacavaca/index.html
+        echo "*********************************"
+        echo "192.168.10.10    apache" >> /etc/hosts
+        SHELL
     end
   end
   # The most common configuration options are documented and commented below.
