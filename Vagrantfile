@@ -5,32 +5,49 @@
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
+NODE_COUNT = 3
+TOMCAT_COUNT = (NODE_COUNT - 1)
+
+
 Vagrant.configure("2") do |config| 
     config.vm.box = "bento/centos-7.5"
     config.vm.provider "virtualbox" do |vb|
         vb.gui = true
     end
+ 
 
+    
+  
     config.vm.define "apache" do |apache|
         apache.vm.hostname = "apache"
         apache.vm.network "private_network", ip: "192.168.10.10"
         apache.vm.network "forwarded_port", guest: 80, host: 18000
         apache.vm.provision "shell", inline: <<-SHELL
+            TOMCAT_COUNT=#{TOMCAT_COUNT}
+            echo $TOMCAT_COUNT
             yum -y install mc
             yum -y install httpd
             systemctl enable httpd
-            systemctl start httpd 
             cp /vagrant/mod_jk.so /etc/httpd/modules/
             touch /etc/httpd/conf/workers.properties
             echo "worker.list=lb" >> /etc/httpd/conf/workers.properties
             echo "worker.lb.type=lb" >> /etc/httpd/conf/workers.properties
             echo "worker.lb.balance_workers=tomcat1,tomcat2 other" >> /etc/httpd/conf/workers.properties
-            echo "worker.tomcat1.host=tomcat1" >> /etc/httpd/conf/workers.properties
-            echo "worker.tomcat1.port=8009" >> /etc/httpd/conf/workers.properties
-            echo "worker.tomcat1.type=ajp13" >> /etc/httpd/conf/workers.properties
-            echo "worker.tomcat2.host=tomcat2" >> /etc/httpd/conf/workers.properties
-            echo "worker.tomcat2.port=8009" >> /etc/httpd/conf/workers.properties
-            echo "worker.tomcat2.type=ajp13" >> /etc/httpd/conf/workers.properties
+            for ((i=1;i<=$TOMCAT_COUNT;i++))
+                do
+                    echo "worker.tomcat${i}.host=tomcat${i}" >> /etc/httpd/conf/workers.properties
+                    echo "worker.tomcat${i}.port=8009" >> /etc/httpd/conf/workers.properties
+                    echo "worker.tomcat${i}.type=ajp13" >> /etc/httpd/conf/workers.properties
+                    echo "192.168.10.1${i}    tomcat${i}" >> /etc/hosts
+                done
+
+
+#            echo "worker.tomcat1.host=tomcat1" >> /etc/httpd/conf/workers.properties
+#            echo "worker.tomcat1.port=8009" >> /etc/httpd/conf/workers.properties
+#            echo "worker.tomcat1.type=ajp13" >> /etc/httpd/conf/workers.properties
+#            echo "worker.tomcat2.host=tomcat2" >> /etc/httpd/conf/workers.properties
+#            echo "worker.tomcat2.port=8009" >> /etc/httpd/conf/workers.properties
+#            echo "worker.tomcat2.type=ajp13" >> /etc/httpd/conf/workers.properties
             echo "*********************************"             
             echo "LoadModule jk_module modules/mod_jk.so" >> /etc/httpd/conf/httpd.conf
             echo "JkWorkersFile conf/workers.properties" >> /etc/httpd/conf/httpd.conf
@@ -38,48 +55,31 @@ Vagrant.configure("2") do |config|
             echo "JkLogFile logs/mod_jk.log" >> /etc/httpd/conf/httpd.conf
             echo "JkLogLevel info" >> /etc/httpd/conf/httpd.conf
             echo "JkMount /pacavaca* lb" >> /etc/httpd/conf/httpd.conf	        
-            echo "192.168.10.11    tomcat1" >> /etc/hosts
-            echo "192.168.10.12    tomcat2" >> /etc/hosts
-            systemctl restart httpd
+#            echo "192.168.10.11    tomcat1" >> /etc/hosts
+#            echo "192.168.10.12    tomcat2" >> /etc/hosts
+             systemctl start httpd 
         SHELL
     end
+  
+  (1..TOMCAT_COUNT).each do |i|
 
-    config.vm.define "tomcat1" do |tomcat1|
-        tomcat1.vm.hostname = "tomcat1"
-        tomcat1.vm.network "private_network", ip: "192.168.10.11"
-#        tomcat1.vm.network "forwarded_port", guest: 8080, host: 18001
-        tomcat1.vm.provision "shell", inline: <<-SHELL
+    config.vm.define "tomcat#{i}" do |tomcat|
+        tomcat.vm.hostname = "tomcat#{i}"
+        tomcat.vm.network "private_network", ip: "192.168.10.#{i + 10}"
+#        tomcat{i}.vm.network "forwarded_port", guest: 8080, host: 1800{i}
+        tomcat.vm.provision "shell", inline: <<-SHELL
             yum -y install mc
             yum -y install java-1.8.0-openjdk
             yum -y install tomcat tomcat-webapps tomcat-admin-webapps
             systemctl enable tomcat
             systemctl start tomcat
             mkdir /usr/share/tomcat/webapps/pacavaca/
-            echo "111111111111111" >> /usr/share/tomcat/webapps/pacavaca/index.html
+            echo "#{i}#{i}#{i}#{i}#{i}#{i}#{i}#{i}" >> /usr/share/tomcat/webapps/pacavaca/index.html
             echo "*********************************"
             echo "192.168.10.10    apache" >> /etc/hosts
-            echo "192.168.10.12    tomcat2" >> /etc/hosts
-        SHELL
+            SHELL
     end
-
-    config.vm.define "tomcat2" do |tomcat2|
-        tomcat2.vm.hostname = "tomcat2"
-        tomcat2.vm.network "private_network", ip: "192.168.10.12"
-#        tomcat2.vm.network "forwarded_port", guest: 8080, host: 18002
-        tomcat2.vm.provision "shell", inline: <<-SHELL
-            yum -y install mc
-            yum -y install java-1.8.0-openjdk
-            yum -y install tomcat tomcat-webapps tomcat-admin-webapps
-            systemctl enable tomcat
-            systemctl start tomcat
-            mkdir /usr/share/tomcat/webapps/pacavaca/
-            echo "22222222222222" >> /usr/share/tomcat/webapps/pacavaca/index.html
-            echo "*********************************"
-            echo "192.168.10.10    apache" >> /etc/hosts
-            echo "192.168.10.11    tomcat1" >> /etc/hosts
-        SHELL
-    end
-
+  end
   # The most common configuration options are documented and commented below.
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
@@ -91,7 +91,7 @@ Vagrant.configure("2") do |config|
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
-  # config.vm.box_check_update = false
+    config.vm.box_check_update = false
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
