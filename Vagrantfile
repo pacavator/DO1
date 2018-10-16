@@ -40,8 +40,6 @@ Vagrant.configure("2") do |config|
                     echo "worker.tomcat${i}.type=ajp13" >> /etc/httpd/conf/workers.properties
                     echo "192.168.10.1${i}    tomcat${i}" >> /etc/hosts
                 done
-
-
 #            echo "worker.tomcat1.host=tomcat1" >> /etc/httpd/conf/workers.properties
 #            echo "worker.tomcat1.port=8009" >> /etc/httpd/conf/workers.properties
 #            echo "worker.tomcat1.type=ajp13" >> /etc/httpd/conf/workers.properties
@@ -57,7 +55,7 @@ Vagrant.configure("2") do |config|
             echo "JkMount /pacavaca* lb" >> /etc/httpd/conf/httpd.conf	        
 #            echo "192.168.10.11    tomcat1" >> /etc/hosts
 #            echo "192.168.10.12    tomcat2" >> /etc/hosts
-             systemctl start httpd 
+            systemctl start httpd 
         SHELL
     end
   
