@@ -5,7 +5,7 @@
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
-NODE_COUNT = 3
+NODE_COUNT = 5
 TOMCAT_COUNT = (NODE_COUNT - 1)
 
 
@@ -32,7 +32,13 @@ Vagrant.configure("2") do |config|
       touch /etc/httpd/conf/workers.properties
       echo "worker.list=lb" >> /etc/httpd/conf/workers.properties
       echo "worker.lb.type=lb" >> /etc/httpd/conf/workers.properties
-      echo "worker.lb.balance_workers=tomcat1,tomcat2 other" >> /etc/httpd/conf/workers.properties
+      T=
+      for ((i=1;i<=$TOMCAT_COUNT;i++))
+        do
+          T="${T}tomcat${i},"
+        done
+      T="${T%?} other"
+      echo "worker.lb.balance_workers=${T}" >> /etc/httpd/conf/workers.properties
       for ((i=1;i<=$TOMCAT_COUNT;i++))
         do
           echo "worker.tomcat${i}.host=tomcat${i}" >> /etc/httpd/conf/workers.properties
